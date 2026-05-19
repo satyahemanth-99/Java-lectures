@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Threads — Visual Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --card: #141417;
+    --card2: #1a1a1f;
+    --border: #2a2a35;
+    --text: #e8e6f0;
+    --muted: #6b6880;
+    --blue: #4f9eff;
+    --blue-dim: #1a3558;
+    --amber: #f5a623;
+    --amber-dim: #3d2800;
+    --green: #3dd68c;
+    --green-dim: #0d3320;
+    --red: #ff5f5f;
+    --red-dim: #3d1010;
+    --purple: #a78bfa;
+    --purple-dim: #2d1f5e;
+    --teal: #2dd4bf;
+    --teal-dim: #0d3330;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Sora', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 2rem 1.5rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .header h1 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: .4rem;
+  }
+  .header p { color: var(--muted); font-size: 13px; font-family: var(--mono); }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 2.5rem; }
+  .section-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    padding-left: 2px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .card-title {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: .75rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    margin: .75rem 0;
+  }
+  .flow-box {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .45rem .9rem;
+    font-size: 12px;
+    font-family: var(--mono);
+    white-space: nowrap;
+  }
+  .flow-arrow {
+    color: var(--muted);
+    font-size: 18px;
+    padding: 0 6px;
+    flex-shrink: 0;
+  }
+  .flow-box.blue  { border-color: var(--blue);   color: var(--blue);   background: var(--blue-dim); }
+  .flow-box.amber { border-color: var(--amber);  color: var(--amber);  background: var(--amber-dim); }
+  .flow-box.green { border-color: var(--green);  color: var(--green);  background: var(--green-dim); }
+  .flow-box.red   { border-color: var(--red);    color: var(--red);    background: var(--red-dim); }
+  .flow-box.purple{ border-color: var(--purple); color: var(--purple); background: var(--purple-dim); }
+  .flow-box.teal  { border-color: var(--teal);   color: var(--teal);   background: var(--teal-dim); }
+
+  /* ── ANALOGY ROW ── */
+  .analogy { display: flex; gap: 10px; flex-wrap: wrap; margin: .75rem 0; }
+  .analogy-item {
+    flex: 1; min-width: 140px;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .7rem 1rem;
+    text-align: center;
+  }
+  .analogy-icon { font-size: 22px; margin-bottom: 4px; }
+  .analogy-label { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+  .analogy-val { font-size: 12px; font-weight: 600; }
+
+  /* ── TIMELINE / THREAD VIZ ── */
+  .thread-timeline { margin: 1rem 0; }
+  .tl-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .tl-label { font-family: var(--mono); font-size: 11px; width: 80px; flex-shrink: 0; }
+  .tl-track { flex: 1; height: 22px; background: var(--card2); border-radius: 4px; position: relative; overflow: hidden; border: 1px solid var(--border); }
+  .tl-seg {
+    position: absolute; top: 2px; height: 18px; border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-family: var(--mono); font-weight: 700;
+    white-space: nowrap; overflow: hidden;
+  }
+
+  /* ── 2-COL GRID ── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media(max-width:600px){ .grid2 { grid-template-columns: 1fr; } }
+
+  /* ── RACE DIAGRAM ── */
+  .race-diagram { display: flex; gap: 12px; align-items: stretch; margin: .75rem 0; }
+  .race-col { flex: 1; }
+  .race-step {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .4rem .75rem;
+    font-size: 11px;
+    font-family: var(--mono);
+    margin-bottom: 4px;
+  }
+  .race-step.active-a { border-color: var(--blue);  color: var(--blue); }
+  .race-step.active-b { border-color: var(--amber); color: var(--amber); }
+  .race-step.danger   { border-color: var(--red);   color: var(--red);  background: var(--red-dim); }
+  .race-step.good     { border-color: var(--green); color: var(--green); }
+  .race-mid { width: 1px; background: var(--border); position: relative; }
+  .race-mid::after { content: '💥'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); background: var(--card); font-size: 16px; }
+
+  /* ── MUTEX DIAGRAM ── */
+  .mutex-flow { display: flex; flex-direction: column; gap: 6px; margin: .75rem 0; }
+  .mutex-row { display: flex; align-items: center; gap: 8px; }
+  .mutex-thread {
+    width: 90px; padding: .35rem .5rem; border-radius: 6px;
+    font-size: 11px; font-family: var(--mono); text-align: center;
+    border: 1px solid; flex-shrink: 0;
+  }
+  .mutex-thread.ta { border-color: var(--blue);  color: var(--blue);  background: var(--blue-dim); }
+  .mutex-thread.tb { border-color: var(--amber); color: var(--amber); background: var(--amber-dim); }
+  .mutex-thread.wait { border-color: var(--border); color: var(--muted); background: var(--card2); border-style: dashed; }
+  .mutex-lock {
+    width: 36px; text-align: center; font-size: 16px;
+  }
+  .mutex-resource {
+    flex: 1; padding: .35rem .75rem; border-radius: 6px;
+    font-size: 11px; font-family: var(--mono);
+    border: 1px solid var(--border); background: var(--card2);
+  }
+  .mutex-resource.owned { border-color: var(--red); }
+  .mutex-note { font-size: 10px; color: var(--muted); padding-left: 4px; }
+
+  /* ── DEADLOCK DIAGRAM ── */
+  .deadlock-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; margin: .75rem 0; }
+  .dl-box {
+    border-radius: 8px; padding: .75rem; text-align: center;
+    font-size: 12px; font-family: var(--mono); border: 1px solid;
+  }
+  .dl-box.a { border-color: var(--blue);  color: var(--blue);  background: var(--blue-dim); }
+  .dl-box.b { border-color: var(--amber); color: var(--amber); background: var(--amber-dim); }
+  .dl-center { text-align: center; }
+  .dl-lock {
+    display: inline-block; font-size: 11px; font-family: var(--mono);
+    padding: .3rem .6rem; border-radius: 4px; border: 1px solid;
+    margin: 3px 0;
+  }
+  .dl-lock.la { border-color: var(--blue);  color: var(--blue); }
+  .dl-lock.lb { border-color: var(--amber); color: var(--amber); }
+  .dl-arrow { font-size: 20px; color: var(--red); }
+
+  /* ── FOUR CONDITIONS ── */
+  .conditions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: .75rem 0; }
+  @media(max-width:500px){ .conditions { grid-template-columns: 1fr; } }
+  .cond-box {
+    border-radius: 8px; border: 1px solid var(--red-dim);
+    background: var(--card2); padding: .75rem 1rem;
+  }
+  .cond-name { font-size: 12px; font-weight: 600; color: var(--red); margin-bottom: 3px; }
+  .cond-desc { font-size: 11px; color: var(--muted); }
+
+  /* ── FIXES ── */
+  .fix-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+  .fix-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--green-dim); border: 1px solid var(--green);
+    color: var(--green); font-size: 11px; font-family: var(--mono);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .fix-text { font-size: 12px; }
+  .fix-text strong { color: var(--green); font-weight: 600; }
+  .fix-text span { color: var(--muted); }
+
+  /* ── TAG ── */
+  .tag {
+    display: inline-block; font-size: 10px; font-family: var(--mono);
+    padding: 2px 8px; border-radius: 99px; margin-right: 4px;
+    border: 1px solid;
+  }
+  .tag.blue   { color: var(--blue);   border-color: var(--blue-dim);   background: var(--blue-dim); }
+  .tag.amber  { color: var(--amber);  border-color: var(--amber-dim);  background: var(--amber-dim); }
+  .tag.red    { color: var(--red);    border-color: var(--red-dim);    background: var(--red-dim); }
+  .tag.green  { color: var(--green);  border-color: var(--green-dim);  background: var(--green-dim); }
+  .tag.purple { color: var(--purple); border-color: var(--purple-dim); background: var(--purple-dim); }
+
+  /* ── BIG NUMBER ── */
+  .stat-row { display: flex; gap: 10px; margin: .75rem 0; flex-wrap: wrap; }
+  .stat {
+    flex: 1; min-width: 120px;
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .75rem 1rem;
+    text-align: center;
+  }
+  .stat-num { font-size: 26px; font-weight: 700; font-family: var(--mono); }
+  .stat-label { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  /* ── CODE ── */
+  code {
+    font-family: var(--mono); font-size: 11px;
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1px 6px; color: var(--purple);
+  }
+
+  /* ── DIVIDER ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+  /* ── MEMORY HOOKS ── */
+  .hook {
+    border-left: 3px solid var(--purple);
+    padding: .6rem 1rem;
+    background: var(--purple-dim);
+    border-radius: 0 8px 8px 0;
+    font-size: 12px;
+    color: var(--purple);
+    margin: .75rem 0;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>THREADS</h1>
+  <p>// visual cheatsheet · race conditions · mutex · deadlocks</p>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     SECTION 1 — WHAT IS A THREAD
+════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">01 — What is a thread?</div>
+
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--blue)"></div>The stack: software → OS → hardware</div>
+    <div class="flow">
+      <div class="flow-box blue">Your App</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box purple">OS</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box amber">CPU</div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-box green">RAM</div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px">CPU executes · RAM stores temporarily · OS manages everything</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--amber)"></div>Multitasking vs Threads</div>
+    <div class="grid2">
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">MULTITASKING — many apps</div>
+        <div class="flow" style="flex-direction:column;align-items:flex-start;gap:4px">
+          <div class="flow-box blue" style="width:100%">App 1 (browser)</div>
+          <div class="flow-box amber" style="width:100%">App 2 (music)</div>
+          <div class="flow-box green" style="width:100%">App 3 (VS Code)</div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:6px">CPU time-shares between them</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">THREADS — inside one app</div>
+        <div class="flow" style="flex-direction:column;align-items:flex-start;gap:4px">
+          <div class="flow-box purple" style="width:100%">thread: render UI</div>
+          <div class="flow-box teal" style="width:100%">thread: spell-check</div>
+          <div class="flow-box amber" style="width:100%">thread: autosave</div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:6px">Smallest unit of work</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--green)"></div>CPU timesharing (how "parallel" really works)</div>
+    <div class="thread-timeline">
+      <div class="tl-row">
+        <div class="tl-label" style="color:var(--blue)">Thread A</div>
+        <div class="tl-track">
+          <div class="tl-seg" style="left:0%;width:18%;background:var(--blue-dim);border:1px solid var(--blue);color:var(--blue)">run</div>
+          <div class="tl-seg" style="left:33%;width:18%;background:var(--blue-dim);border:1px solid var(--blue);color:var(--blue)">run</div>
+          <div class="tl-seg" style="left:66%;width:18%;background:var(--blue-dim);border:1px solid var(--blue);color:var(--blue)">run</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-label" style="color:var(--amber)">Thread B</div>
+        <div class="tl-track">
+          <div class="tl-seg" style="left:19%;width:13%;background:var(--amber-dim);border:1px solid var(--amber);color:var(--amber)">run</div>
+          <div class="tl-seg" style="left:52%;width:13%;background:var(--amber-dim);border:1px solid var(--amber);color:var(--amber)">run</div>
+          <div class="tl-seg" style="left:85%;width:13%;background:var(--amber-dim);border:1px solid var(--amber);color:var(--amber)">run</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-label" style="color:var(--green)">Thread C</div>
+        <div class="tl-track">
+          <div class="tl-seg" style="left:33%;width:18%;background:var(--green-dim);border:1px solid var(--green);color:var(--green)">run</div>
+          <div class="tl-seg" style="left:66%;width:15%;background:var(--green-dim);border:1px solid var(--green);color:var(--green)">run</div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--muted)">→ CPU switches so fast (milliseconds) it feels simultaneous. This is timesharing.</div>
+  </div>
+
+  <div class="hook">🏟️ Memory hook: CPU = referee · threads = players · RAM = the stadium they all share</div>
+
+  <div class="stat-row">
+    <div class="stat"><div class="stat-num" style="color:var(--blue)">1</div><div class="stat-label">CPU brain</div></div>
+    <div class="stat"><div class="stat-num" style="color:var(--amber)">N</div><div class="stat-label">threads sharing it</div></div>
+    <div class="stat"><div class="stat-num" style="color:var(--green)">1</div><div class="stat-label">shared RAM pool</div></div>
+  </div>
+</div>
+
+<hr>
+
+<!-- ══════════════════════════════════════════
+     SECTION 2 — RACE CONDITION
+════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">02 — Race condition</div>
+
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--red)"></div>What happens when two threads touch the same data</div>
+
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Shared variable: <code>score = 0</code> · Both threads want to add 1</div>
+
+    <div class="race-diagram">
+      <div class="race-col">
+        <div style="font-size:10px;color:var(--blue);font-family:var(--mono);margin-bottom:4px">THREAD A</div>
+        <div class="race-step active-a">reads score → 0</div>
+        <div class="race-step active-a">adds 1 locally</div>
+        <div class="race-step danger">writes 1 ✓</div>
+      </div>
+      <div class="race-mid"></div>
+      <div class="race-col">
+        <div style="font-size:10px;color:var(--amber);font-family:var(--mono);margin-bottom:4px">THREAD B</div>
+        <div class="race-step active-b">reads score → 0 ⚠️</div>
+        <div class="race-step active-b">adds 1 locally</div>
+        <div class="race-step danger">writes 1 ← overwrites!</div>
+      </div>
+    </div>
+
+    <div class="flow" style="margin-top:10px">
+      <div class="flow-box green">Expected: score = 2</div>
+      <div class="flow-arrow">but got →</div>
+      <div class="flow-box red">Actual: score = 1 💥</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--red)"></div>Why it happens — the three dangerous steps</div>
+    <div class="flow">
+      <div class="flow-box">READ</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">MODIFY</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box red">WRITE</div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:8px">If thread gets interrupted between READ and WRITE, another thread reads the old value. Silent bug — no crash, wrong answer.</div>
+  </div>
+
+  <div class="hook">🏧 Memory hook: Two ATMs, same account, same moment → both approve ₹1000 withdrawal → bank loses money</div>
+</div>
+
+<hr>
+
+<!-- ══════════════════════════════════════════
+     SECTION 3 — MUTEX
+════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">03 — Mutex (the fix)</div>
+
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--green)"></div>Mutex = Mutual Exclusion = one at a time</div>
+
+    <div class="mutex-flow">
+      <!-- Step 1 -->
+      <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:2px">STEP 1 — A grabs the lock</div>
+      <div class="mutex-row">
+        <div class="mutex-thread ta">Thread A ✓</div>
+        <div class="mutex-lock">🔒</div>
+        <div class="mutex-resource owned">score = 0 → writing…</div>
+        <div class="mutex-note">← A owns this zone</div>
+      </div>
+      <div class="mutex-row" style="margin-bottom:10px">
+        <div class="mutex-thread wait">Thread B ⏸</div>
+        <div class="mutex-lock" style="font-size:11px;color:var(--muted)">wait</div>
+        <div class="mutex-resource" style="color:var(--muted)">blocked outside</div>
+        <div class="mutex-note"></div>
+      </div>
+      <!-- Step 2 -->
+      <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:2px">STEP 2 — A releases, B enters</div>
+      <div class="mutex-row">
+        <div class="mutex-thread wait">Thread A ✓</div>
+        <div class="mutex-lock">🔓</div>
+        <div class="mutex-resource" style="color:var(--green);border-color:var(--green)">score = 1 (safe)</div>
+        <div class="mutex-note">← A done, lock free</div>
+      </div>
+      <div class="mutex-row">
+        <div class="mutex-thread tb">Thread B ✓</div>
+        <div class="mutex-lock">🔒</div>
+        <div class="mutex-resource owned">score = 1 → writing…</div>
+        <div class="mutex-note">← B owns it now</div>
+      </div>
+    </div>
+
+    <div class="flow" style="margin-top:10px">
+      <div class="flow-box green">score = 2 ✓ correct!</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--green)"></div>Mutex flow diagram</div>
+    <div class="flow">
+      <div class="flow-box blue">Thread wants in</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box amber">Lock free?</div>
+      <div class="flow-arrow">Yes→</div>
+      <div class="flow-box green">Grab lock · work · release</div>
+    </div>
+    <div style="height:6px"></div>
+    <div class="flow">
+      <div class="flow-box" style="visibility:hidden;width:126px"></div>
+      <div class="flow-arrow" style="visibility:hidden">→</div>
+      <div class="flow-box red">No → wait in queue</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box amber">Lock free?</div>
+      <div class="flow-arrow">↻</div>
+    </div>
+  </div>
+
+  <div class="hook">🚽 Memory hook: Mutex = one bathroom key. Door locked = someone's inside. You wait. They leave. You go in. Nobody shares.</div>
+</div>
+
+<hr>
+
+<!-- ══════════════════════════════════════════
+     SECTION 4 — DEADLOCK
+════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">04 — Deadlock</div>
+
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--red)"></div>The circular wait — nobody moves</div>
+
+    <div class="deadlock-grid">
+      <div class="dl-box a">
+        Thread A<br>
+        <span style="font-size:10px;color:var(--muted)">holds Lock 1<br>wants Lock 2</span>
+      </div>
+      <div class="dl-center">
+        <div class="dl-lock la">Lock 1 🔒</div><br>
+        <div style="color:var(--red);font-size:18px;margin:4px 0">⇅</div>
+        <div class="dl-lock lb">Lock 2 🔒</div>
+      </div>
+      <div class="dl-box b">
+        Thread B<br>
+        <span style="font-size:10px;color:var(--muted)">holds Lock 2<br>wants Lock 1</span>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:12px;color:var(--red);font-family:var(--mono);margin-top:8px">→ A waits for B · B waits for A · frozen forever ←</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--red)"></div>Step-by-step: how a deadlock forms</div>
+    <div class="flow" style="flex-direction:column;align-items:flex-start;gap:6px">
+      <div style="display:flex;gap:8px;align-items:center;width:100%">
+        <div class="flow-box blue" style="min-width:90px">A grabs L1</div>
+        <div class="flow-arrow">+</div>
+        <div class="flow-box amber" style="min-width:90px">B grabs L2</div>
+        <div style="font-size:10px;color:var(--green);margin-left:8px">✓ both succeed</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;width:100%">
+        <div class="flow-box blue" style="min-width:90px">A wants L2</div>
+        <div class="flow-arrow">+</div>
+        <div class="flow-box amber" style="min-width:90px">B wants L1</div>
+        <div style="font-size:10px;color:var(--amber);margin-left:8px">⚠️ both blocked</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;width:100%">
+        <div class="flow-box red" style="min-width:195px;text-align:center">circular wait — nobody releases</div>
+        <div style="font-size:10px;color:var(--red);margin-left:8px">💀 deadlock</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--amber)"></div>4 conditions for deadlock (all must be true)</div>
+    <div class="conditions">
+      <div class="cond-box">
+        <div class="cond-name">1. Mutual Exclusion</div>
+        <div class="cond-desc">resource can only be held by one thread</div>
+      </div>
+      <div class="cond-box">
+        <div class="cond-name">2. Hold & Wait</div>
+        <div class="cond-desc">thread holds one lock while waiting for another</div>
+      </div>
+      <div class="cond-box">
+        <div class="cond-name">3. No Preemption</div>
+        <div class="cond-desc">nobody can force a thread to release its lock</div>
+      </div>
+      <div class="cond-box">
+        <div class="cond-name">4. Circular Wait</div>
+        <div class="cond-desc">A waits for B, B waits for A → closed loop</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px">Break ANY one of these → no deadlock possible</div>
+  </div>
+
+  <div class="hook">🍜 Memory hook: Dining Philosophers — 5 people, 5 chopsticks, everyone grabs left one simultaneously. Nobody can eat. Everyone starves.</div>
+</div>
+
+<hr>
+
+<!-- ══════════════════════════════════════════
+     SECTION 5 — FIXES
+════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">05 — How to fix deadlocks</div>
+
+  <div class="card">
+    <div class="fix-row">
+      <div class="fix-num">1</div>
+      <div class="fix-text"><strong>Lock ordering</strong> — <span>always grab locks in the same order. A and B both do Lock1→Lock2. Circle breaks.</span></div>
+    </div>
+    <div class="flow" style="margin:4px 0 12px 32px">
+      <div class="flow-box blue">grab L1</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box blue">grab L2</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box green">work</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box teal">release both</div>
+    </div>
+
+    <div class="fix-row">
+      <div class="fix-num">2</div>
+      <div class="fix-text"><strong>Try-lock + timeout</strong> — <span>try to grab, give up after Xms. Release what you hold. Retry later.</span></div>
+    </div>
+    <div class="flow" style="margin:4px 0 12px 32px">
+      <div class="flow-box amber">try lock</div>
+      <div class="flow-arrow">fail?→</div>
+      <div class="flow-box red">release all</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box amber">wait · retry</div>
+    </div>
+
+    <div class="fix-row">
+      <div class="fix-num">3</div>
+      <div class="fix-text"><strong>Deadlock detection</strong> — <span>OS watches for circular waits, kills one thread (the "victim") to break the loop. Databases do this.</span></div>
+    </div>
+    <div class="flow" style="margin:4px 0 12px 32px">
+      <div class="flow-box purple">detect cycle</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box red">kill victim thread</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box green">others proceed</div>
+    </div>
+
+    <div class="fix-row">
+      <div class="fix-num">4</div>
+      <div class="fix-text"><strong>Message passing</strong> — <span>threads never share resources. They send messages instead. No shared lock = no deadlock. Go, Rust, Erlang use this.</span></div>
+    </div>
+    <div class="flow" style="margin:4px 0 4px 32px">
+      <div class="flow-box blue">Thread A</div>
+      <div class="flow-arrow">─── msg ──→</div>
+      <div class="flow-box amber">Thread B</div>
+      <div style="font-size:10px;color:var(--green);margin-left:10px;align-self:center">no locks needed</div>
+    </div>
+  </div>
+</div>
+
+<hr>
+
+<!-- ══════════════════════════════════════════
+     SECTION 6 — SUMMARY FLOW
+════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">06 — Full picture in one diagram</div>
+
+  <div class="card">
+    <div class="flow" style="flex-direction:column;align-items:flex-start;gap:8px">
+
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div class="flow-box blue">Program starts</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box purple">OS spawns threads</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box amber">CPU timeshares</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-left:20px">
+        <div class="flow-arrow" style="padding:0">↓</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div class="flow-box">threads share RAM</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box red">race condition risk</div>
+        <div class="flow-arrow">fix→</div>
+        <div class="flow-box green">mutex lock</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-left:20px">
+        <div class="flow-arrow" style="padding:0">↓</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div class="flow-box green">mutex used</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box red">deadlock risk</div>
+        <div class="flow-arrow">fix→</div>
+        <div class="flow-box teal">ordering / timeout / messages</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<hr>
+
+<!-- ══════════════════════════════════════════
+     SECTION 7 — MEMORY HOOKS
+════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">07 — memory hooks (the ones that stick)</div>
+  <div class="grid2">
+    <div class="card" style="border-color:var(--blue-dim)">
+      <div style="font-size:11px;color:var(--blue);font-family:var(--mono);margin-bottom:6px">THREAD</div>
+      <div style="font-size:13px">🏟️ Football referee spinning between players — so fast it looks simultaneous</div>
+    </div>
+    <div class="card" style="border-color:var(--amber-dim)">
+      <div style="font-size:11px;color:var(--amber);font-family:var(--mono);margin-bottom:6px">TIMESHARING</div>
+      <div style="font-size:13px">⏱️ Chef flipping 5 dishes — switches fast, none burns</div>
+    </div>
+    <div class="card" style="border-color:var(--red-dim)">
+      <div style="font-size:11px;color:var(--red);font-family:var(--mono);margin-bottom:6px">RACE CONDITION</div>
+      <div style="font-size:13px">🏧 Two ATMs, same account, same second → bank loses money silently</div>
+    </div>
+    <div class="card" style="border-color:var(--green-dim)">
+      <div style="font-size:11px;color:var(--green);font-family:var(--mono);margin-bottom:6px">MUTEX</div>
+      <div style="font-size:13px">🚽 One bathroom key — door locked means someone's inside, wait outside</div>
+    </div>
+    <div class="card" style="border-color:var(--red-dim);grid-column:span 2">
+      <div style="font-size:11px;color:var(--red);font-family:var(--mono);margin-bottom:6px">DEADLOCK</div>
+      <div style="font-size:13px">🍜 5 philosophers, 5 chopsticks — everyone grabs left one → everyone waits for right one → nobody eats → forever</div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;margin-top:2rem;font-size:10px;color:var(--muted);font-family:var(--mono)">threads visual notes · built for memory not theory</div>
+
+</body>
+</html>
